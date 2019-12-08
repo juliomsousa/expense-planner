@@ -1,5 +1,7 @@
-import 'package:expense_planner/widgets/transaction_list.dart';
 import 'package:flutter/material.dart';
+
+import './widgets/chart.dart';
+import './widgets/transaction_list.dart';
 import './widgets/new_transactoin.dart';
 import 'models/transaction.dart';
 
@@ -15,12 +17,14 @@ class MyApp extends StatelessWidget {
         accentColor: Colors.amber,
         fontFamily: 'Quicksand',
         textTheme: ThemeData.light().textTheme.copyWith(
-              title: TextStyle(
-                fontFamily: 'OpenSans',
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+            title: TextStyle(
+              fontFamily: 'OpenSans',
+              fontWeight: FontWeight.bold,
+              fontSize: 18,
             ),
+            button: TextStyle(
+              color: Colors.white,
+            )),
         appBarTheme: AppBarTheme(
           textTheme: ThemeData.light().textTheme.copyWith(
                 title: TextStyle(
@@ -42,55 +46,35 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  final List<Transaction> _userTransactons = [
-    Transaction(
-      id: 't1',
-      title: 'New Laptop',
-      amount: 799.99,
-      date: DateTime.now(),
-    ),
-    Transaction(
-      id: 't2',
-      title: 'Netflix billing',
-      amount: 10.80,
-      date: DateTime.now(),
-    ),
-    Transaction(
-      id: 't2',
-      title: 'Netflix billing',
-      amount: 10.80,
-      date: DateTime.now(),
-    ),
-    Transaction(
-      id: 't2',
-      title: 'Netflix billing',
-      amount: 10.80,
-      date: DateTime.now(),
-    ),
-    Transaction(
-      id: 't2',
-      title: 'Netflix billing',
-      amount: 10.80,
-      date: DateTime.now(),
-    ),
-    Transaction(
-      id: 't2',
-      title: 'Netflix billing',
-      amount: 10.80,
-      date: DateTime.now(),
-    ),
-  ];
+  final List<Transaction> _userTransactons = [];
 
-  _addNewTransaction(String txTitle, double txAmount) {
+  List<Transaction> get _recentTransactions {
+    return _userTransactons.where((tx) {
+      return tx.date.isAfter(
+        DateTime.now().subtract(
+          Duration(days: 7),
+        ),
+      );
+    }).toList();
+  }
+
+  _addNewTransaction(String txTitle, double txAmount, DateTime chosenDate) {
     final newTx = Transaction(
       title: txTitle,
       amount: txAmount,
-      date: DateTime.now(),
+      date: chosenDate,
       id: DateTime.now().toString(),
     );
 
     setState(() {
       _userTransactons.add(newTx);
+    });
+  }
+
+  void _deleteTransaction(String transactionId) {
+    setState(() {
+      _userTransactons
+          .removeWhere((transaction) => transaction.id == transactionId);
     });
   }
 
@@ -119,18 +103,10 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
       body: SingleChildScrollView(
         child: Column(
-          // mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: <Widget>[
-            Container(
-              width: double.infinity,
-              child: Card(
-                color: Colors.blue,
-                child: Text('CHART'),
-                elevation: 5,
-              ),
-            ),
-            TransactionList(_userTransactons),
+            Chart(_recentTransactions),
+            TransactionList(_userTransactons, _deleteTransaction),
           ],
         ),
       ),
